@@ -6,13 +6,18 @@ import ConfigReader
 # Press Double Shift to search everywhere for classes, files, tool windows, actions, and settings.
 
 
-def print_hi(name):
+def create_config():
     # Use a breakpoint in the code line below to debug your script.
-    print(f'Hi, {name}')  # Press Ctrl+F8 to toggle the breakpoint.
+    num_files = ConfigReader.directory_traverser(source="/home/x/music", config="/tmp/cheese.conf")
+    print("Discovered {0} files".format(num_files))
+
+
+def create_skel():
+    # Use a breakpoint in the code line below to debug your script.
+    num_files = ConfigReader.create_skeleton(config="/tmp/cheese.conf", target="/tmp/x")
+    print("Discovered {0} files".format(num_files))
 
 
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
-    num_files = ConfigReader.directory_traverser(directory="/home/x/music", config_filename="/tmp/cheese.conf")
-    print("Discovered {0} files".format(num_files))
-# See PyCharm help at https://www.jetbrains.com/help/pycharm/
+    create_skel()
