@@ -2,7 +2,14 @@
 import os
 
 
-def create_skeleton(config="cheese.conf", target="."):
+# TODO: Config starts with some other character: .
+#       This makes it possible to have a config anywhere in the file.
+# TODO: Read about holes, and see if it is possible to create entirely empty files.
+# TODO: Commandline param on whether you want to create holes or empty files.
+# TODO: Commandline param if you want to keep the hash of the files at config creation time
+# TODO:
+
+def create_skeleton(config="cheese.conf", target=".", config_make_holes=False):
     """
     Read the config provided here, and create a skeleton of cheese: files that just have names, the correct modes and
     size, but are empty (UNIX holes)
@@ -50,13 +57,15 @@ def create_skeleton(config="cheese.conf", target="."):
         # TODO: directories have their own attributes, we need them in the config
         os.makedirs(dir, exist_ok=True)
         f = open(out_file, "x")
-        f.seek(size, 0)
         # TODO: Learn more about holes.  If the user doesn't want bookending, then let this be.
         # This works, and creates right sized files.
-        f.write('.')
+        if config_make_holes:
+            # Create an appropriately sized hole
+            f.seek(size - 1, 0)
+            f.write('.')
+
         f.close()
         num_files = num_files + 1
-    # Create an appropriately sized hole
 
     # Modify the log file pointing to what was written
     return num_files
