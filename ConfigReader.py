@@ -1,10 +1,14 @@
 # Reads the config file, and creates holes for the config
 import os
 
+# Holes cannot be entirely empty, they have to consume at least one block at the end.
+# Since each Linux block is 4k these days, this means a loss of 4k per file, which might
+# be excessive.  My test skeleton is 80k files, so that's 320M of storage just for holes.
+# If we go this route, it might be a good idea to have the *first* 4k also copied correctly.
+# Most file metadata (mp3, ogg) lies in this first 4k, and it will help ID3 tag programs
+# correctly identify the file, even though the content is empty.  But that's an additional
+# 320M of space.
 
-# TODO: Config starts with some other character: .
-#       This makes it possible to have a config anywhere in the file.
-# TODO: Read about holes, and see if it is possible to create entirely empty files.
 # TODO: Commandline param on whether you want to create holes or empty files.
 # TODO: Commandline param if you want to keep the hash of the files at config creation time
 # TODO:
@@ -29,12 +33,23 @@ def create_skeleton(config="cheese.conf", target=".", config_make_holes=False):
 
     # Number of files created
     num_files = 0
+    options = {} # Dict for configuration options
+
     # For each line in the file
     for line in config.readlines():
         if len(line) < 3:
             continue
-        if line.strip()[0] == '#':
-            # Ignore a comment line
+        line = line.strip()
+        # Comments start with a #
+        if line[0] == '#':
+            continue
+
+        # Config start with a .
+        if line[0] == '.':
+            # Each config line has exactly one variable, separated by '='
+            (key, val) = line[1:].split(sep='=', maxsplit=1)
+            options[key.strip()] = val.strip()
+            print(options)
             continue
 
         pieces = line.split(sep=',', maxsplit=3)
@@ -43,7 +58,7 @@ def create_skeleton(config="cheese.conf", target=".", config_make_holes=False):
             continue
 
         # Verify that the size of the file is the same as the first piece
-        name_length, size, attrs, name = int(pieces[0]), int(pieces[1]), int(pieces[2]), pieces[3][1:-1]
+        name_length, size, attrs, name = int(pieces[0]), int(pieces[1]), int(pieces[2]), pieces[3][1:]
         if not (name_length == len(name)):
             # Complain
             print("Unexpected filename: of string {0} is {1} not {1}".format(name, len(name), name_length))
@@ -92,9 +107,9 @@ def directory_traverser(source=".", config="cheese.conf"):
 
     config_header = """# Cheese config
 # Comments start with # character, empty lines are fine.
-version = 1
-author = cheese.python
-production = False
+.version = 1
+.author = cheese.python
+.production = False
 
 """
     # Open file for writing
