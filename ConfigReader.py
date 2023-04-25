@@ -13,6 +13,8 @@ import os
 # TODO: Commandline param if you want to keep the hash of the files at config creation time
 # TODO:
 
+verbose = False
+
 def create_skeleton(config="cheese.conf", target=".", config_make_holes=False):
     """
     Read the config provided here, and create a skeleton of cheese: files that just have names, the correct modes and
@@ -66,7 +68,8 @@ def create_skeleton(config="cheese.conf", target=".", config_make_holes=False):
             continue
 
         # Create the file with the right attributes
-        print("Working on {0}".format(name))
+        if verbose:
+            print("Working on {0}".format(name))
         out_file = os.path.join(target, name)
         dir = os.path.dirname(out_file)
         # TODO: directories have their own attributes, we need them in the config
@@ -95,7 +98,7 @@ def write_journal(journal, filename):
     pass
 
 
-def directory_traverser(source=".", config="cheese.conf"):
+def create_config(source=".", config="cheese.conf"):
     """
     Given the name of the directory, traverse it and create an config that can be shared.
     Does not overwrite the file, does not modify any files in the directory
@@ -125,21 +128,32 @@ def directory_traverser(source=".", config="cheese.conf"):
     config.write(config_header)
     count = 0
 
+    # Canonicalize the source directory.  If it ends in a trailing slash, remove it, since we require it to NOT
+    # end in a slash.  There is a hack len(source) + 1 calculation that can be messed up if there are slashes.
+    # And since you can say /tmp////// instead of /tmp, or /tmp/, we need to remove all trailing slashes
+    source = source.rstrip('/')
+
     # Recurse down the directory
     # For each file, get the size, and the full path
     # Add to the config.
-    for dirname, subdir_list, file_list in os.walk(source, topdown=True):
+    for dir_name, subdir_list, file_list in os.walk(source, topdown=True):
         for file_name in file_list:
-            print(dirname)
+            if verbose:
+                # This is the directory we are now reading.
+                print(dir_name)
 
-            full_name = os.path.join(dirname, file_name)
+            full_name = os.path.join(dir_name, file_name)
             info = os.stat(full_name)
             # We have to remove the toplevel directory that we are building this from, since everything is
             # relative to that directory.
+
+            # The magic addition of 1 here to remove the final / that separates the <source> from all the files
+            # found one level below the source.
             # TODO: Need to verify this crude logic works in every current system.
             prefix = len(source) + 1
             printed_name = full_name[prefix:]
-            print("{0} with size {1} and mode {2}".format(printed_name, info.st_size, info.st_mode))
+            if verbose:
+                print("{0} with size {1} and mode {2}".format(printed_name, info.st_size, info.st_mode))
             # TODO: Got to figure out how best to escape and unescape strings so that they are preserved
             # TODO: Got to write some tests around this.
             config.write("{0}, {1}, {2}, {3}\n".format(len(printed_name), info.st_size, info.st_mode, printed_name))
