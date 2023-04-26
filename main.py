@@ -1,4 +1,6 @@
-import argparse, os, sys
+import argparse
+import os
+import sys
 
 import ConfigReader
 
@@ -6,6 +8,7 @@ import ConfigReader
 # TODO: Got to write a man page, a real one.
 
 verbose = False
+
 
 def create_config(source_dir, config_name):
     # Create a config to mirror the given a source directory
@@ -56,7 +59,7 @@ Examples:
     if verbose:
         print("#", args)
 
-    # Super ugly hackery: argparse quotes the ascii input, so we get '/tmp/cheese.conf' when we really want just
+    # Hideous hackery: argparse quotes the ascii input, so we get '/tmp/cheese.conf' when we really want just
     # the path.  Right now, just removing the leading and training quotes.  This is just plain ugly.
     command = args.command.lower()
     if command == 'config':

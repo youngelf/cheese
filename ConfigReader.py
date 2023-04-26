@@ -15,10 +15,12 @@ import os
 
 verbose = False
 
+
 def create_skeleton(config="cheese.conf", target=".", config_make_holes=False):
     """
     Read the config provided here, and create a skeleton of cheese: files that just have names, the correct modes and
     size, but are empty (UNIX holes)
+    @param config_make_holes:
     @rtype: int
     @param target: the directory in which the skeleton is created.
     @param config: the input that is read to create a skeleton
@@ -35,7 +37,7 @@ def create_skeleton(config="cheese.conf", target=".", config_make_holes=False):
 
     # Number of files created
     num_files = 0
-    options = {} # Dict for configuration options
+    options = {}  # Dict for configuration options
 
     # For each line in the file
     for line in config.readlines():
@@ -71,9 +73,9 @@ def create_skeleton(config="cheese.conf", target=".", config_make_holes=False):
         if verbose:
             print("Working on {0}".format(name))
         out_file = os.path.join(target, name)
-        dir = os.path.dirname(out_file)
+        dir_name = os.path.dirname(out_file)
         # TODO: directories have their own attributes, we need them in the config
-        os.makedirs(dir, exist_ok=True)
+        os.makedirs(dir_name, exist_ok=True)
         f = open(out_file, "x")
         # TODO: Learn more about holes.  If the user doesn't want bookending, then let this be.
         # This works, and creates right sized files.
@@ -89,18 +91,9 @@ def create_skeleton(config="cheese.conf", target=".", config_make_holes=False):
     return num_files
 
 
-def write_journal(journal, filename):
-    """ Write the current journal to the filename provided here
-    @param journal:
-    @param filename:
-    @rtype: object
-    """
-    pass
-
-
 def create_config(source=".", config="cheese.conf"):
     """
-    Given the name of the directory, traverse it and create an config that can be shared.
+    Given the name of the directory, traverse it and create a config that can be shared.
     Does not overwrite the file, does not modify any files in the directory
     @rtype: int
     @param source:
